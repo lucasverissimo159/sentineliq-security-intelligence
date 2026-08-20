@@ -5,6 +5,7 @@ Run locally with:
 """
 from __future__ import annotations
 
+import asyncio
 import logging
 from contextlib import asynccontextmanager
 
@@ -12,6 +13,7 @@ from fastapi import FastAPI
 
 from sentineliq.infrastructure.config.settings import get_settings
 from sentineliq.infrastructure.persistence.database import get_engine
+from sentineliq.interfaces.api.background_tasks import run_analysis_loop
 from sentineliq.interfaces.api.routers import alerts, logs, reports
 
 
@@ -19,7 +21,19 @@ from sentineliq.interfaces.api.routers import alerts, logs, reports
 async def lifespan(app: FastAPI):
     settings = get_settings()
     logging.basicConfig(level=settings.log_level)
+
+    # Start the background analysis loop
+    analysis_task = asyncio.create_task(run_analysis_loop())
+
     yield
+
+    # Cancel the background task and wait for it to finish
+    analysis_task.cancel()
+    try:
+        await analysis_task
+    except asyncio.CancelledError:
+        pass
+
     # Dispose the SQLAlchemy engine's connection pool on shutdown.
     await get_engine().dispose()
 
