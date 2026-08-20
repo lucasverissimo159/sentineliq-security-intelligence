@@ -35,6 +35,9 @@ class Settings(BaseSettings):
     anthropic_api_key: str | None = None
     anthropic_model: str = "claude-sonnet-5"
 
+    # --- Background Tasks ---
+    analysis_interval_minutes: int = 5
+
     @property
     def is_production(self) -> bool:
         return self.app_env.lower() == "production"

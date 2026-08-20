@@ -14,8 +14,10 @@ import pytest
 
 from sentineliq.application.ports.ai_analysis import AIAnalysisPort
 from sentineliq.application.ports.alert_repository import AlertRepositoryPort
+from sentineliq.application.ports.api_key_repository import ApiKeyRepositoryPort
 from sentineliq.application.ports.log_repository import LogRepositoryPort
 from sentineliq.application.ports.object_storage import ObjectStoragePort
+from sentineliq.domain.entities.api_key import ApiKey
 from sentineliq.domain.entities.log_entry import LogEntry
 from sentineliq.domain.entities.threat_alert import ThreatAlert
 from sentineliq.domain.value_objects.severity import Severity
@@ -61,6 +63,20 @@ class FakeObjectStorage(ObjectStoragePort):
         return self.objects[key]
 
 
+class FakeApiKeyRepository(ApiKeyRepositoryPort):
+    def __init__(self) -> None:
+        self.saved: list[ApiKey] = []
+
+    async def find_by_hash(self, key_hash: str) -> ApiKey | None:
+        return next((k for k in self.saved if k.key_hash == key_hash), None)
+
+    async def save(self, api_key: ApiKey) -> None:
+        existing = await self.find_by_hash(api_key.key_hash)
+        if existing:
+            self.saved.remove(existing)
+        self.saved.append(api_key)
+
+
 class FakeAIAnalysis(AIAnalysisPort):
     """Returns canned results instead of calling the real Claude API."""
 
@@ -93,6 +109,11 @@ def fake_object_storage() -> FakeObjectStorage:
 @pytest.fixture
 def fake_ai_analysis() -> FakeAIAnalysis:
     return FakeAIAnalysis()
+
+
+@pytest.fixture
+def fake_api_key_repository() -> FakeApiKeyRepository:
+    return FakeApiKeyRepository()
 
 
 @pytest.fixture

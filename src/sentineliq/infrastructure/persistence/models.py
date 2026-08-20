@@ -52,3 +52,13 @@ class AnalysisReportModel(Base):
     alert_ids: Mapped[list] = mapped_column(JSON, default=list)
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
     s3_object_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
+
+
+class ApiKeyModel(Base):
+    __tablename__ = "api_keys"
+
+    id: Mapped[uuid.UUID] = mapped_column(PG_UUID(as_uuid=True), primary_key=True)
+    name: Mapped[str] = mapped_column(String(255))
+    key_hash: Mapped[str] = mapped_column(String(64), unique=True, index=True)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True))
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
