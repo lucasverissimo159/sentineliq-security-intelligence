@@ -6,13 +6,20 @@ from fastapi import APIRouter, Depends
 from sentineliq.application.use_cases.generate_threat_report import (
     GenerateThreatReportUseCase,
 )
-from sentineliq.interfaces.api.dependencies import get_generate_report_use_case
+from sentineliq.interfaces.api.dependencies import (
+    get_generate_report_use_case,
+    verify_api_key,
+)
 from sentineliq.interfaces.api.schemas.report_schemas import (
     AnalysisReportOut,
     GenerateReportRequest,
 )
 
-router = APIRouter(prefix="/reports", tags=["reports"])
+router = APIRouter(
+    prefix="/reports",
+    tags=["reports"],
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @router.post("/generate", response_model=AnalysisReportOut)

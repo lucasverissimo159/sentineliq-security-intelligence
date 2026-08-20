@@ -8,10 +8,18 @@ from sentineliq.domain.entities.threat_alert import ThreatAlert
 from sentineliq.infrastructure.persistence.repositories.postgres_alert_repository import (
     PostgresAlertRepository,
 )
-from sentineliq.interfaces.api.dependencies import get_alert_repository, get_analyze_logs_use_case
+from sentineliq.interfaces.api.dependencies import (
+    get_alert_repository,
+    get_analyze_logs_use_case,
+    verify_api_key,
+)
 from sentineliq.interfaces.api.schemas.alert_schemas import AnalyzeLogsResponse, ThreatAlertOut
 
-router = APIRouter(prefix="/alerts", tags=["alerts"])
+router = APIRouter(
+    prefix="/alerts",
+    tags=["alerts"],
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @router.post("/analyze", response_model=AnalyzeLogsResponse)

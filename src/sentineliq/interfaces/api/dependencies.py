@@ -10,11 +10,14 @@ from __future__ import annotations
 
 from collections.abc import AsyncIterator
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, Security, status
+from fastapi.security import APIKeyHeader
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from sentineliq.application.ports.ai_analysis import AIAnalysisPort
 from sentineliq.application.ports.alert_repository import AlertRepositoryPort
+from sentineliq.application.ports.api_key_repository import ApiKeyRepositoryPort
+from sentineliq.domain.entities.api_key import ApiKey
 from sentineliq.application.ports.log_repository import LogRepositoryPort
 from sentineliq.application.ports.object_storage import ObjectStoragePort
 from sentineliq.application.use_cases.analyze_logs import AnalyzeLogsUseCase
@@ -29,9 +32,15 @@ from sentineliq.infrastructure.persistence.database import get_session_factory
 from sentineliq.infrastructure.persistence.repositories.postgres_alert_repository import (
     PostgresAlertRepository,
 )
+from sentineliq.infrastructure.persistence.repositories.postgres_api_key_repository import (
+    PostgresApiKeyRepository,
+)
 from sentineliq.infrastructure.persistence.repositories.postgres_log_repository import (
     PostgresLogRepository,
 )
+
+
+api_key_header = APIKeyHeader(name="X-API-Key", auto_error=False)
 
 
 async def get_db_session() -> AsyncIterator[AsyncSession]:
@@ -51,6 +60,35 @@ def get_log_repository(session: AsyncSession = Depends(get_db_session)) -> LogRe
 
 def get_alert_repository(session: AsyncSession = Depends(get_db_session)) -> AlertRepositoryPort:
     return PostgresAlertRepository(session)
+
+
+def get_api_key_repository(session: AsyncSession = Depends(get_db_session)) -> ApiKeyRepositoryPort:
+    return PostgresApiKeyRepository(session)
+
+
+async def verify_api_key(
+    raw_key: str | None = Security(api_key_header),
+    api_key_repo: ApiKeyRepositoryPort = Depends(get_api_key_repository),
+) -> ApiKey:
+    """Validate the X-API-Key header and return the underlying entity."""
+    if not raw_key:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing API key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
+    key_hash = ApiKey.hash_key(raw_key)
+    api_key = await api_key_repo.find_by_hash(key_hash)
+
+    if not api_key or not api_key.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or inactive API key",
+            headers={"WWW-Authenticate": "ApiKey"},
+        )
+
+    return api_key
 
 
 def get_object_storage(settings: Settings = Depends(get_settings)) -> ObjectStoragePort:

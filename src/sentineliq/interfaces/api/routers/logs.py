@@ -11,14 +11,22 @@ from sentineliq.domain.value_objects.severity import Severity
 from sentineliq.infrastructure.persistence.repositories.postgres_log_repository import (
     PostgresLogRepository,
 )
-from sentineliq.interfaces.api.dependencies import get_ingest_logs_use_case, get_log_repository
+from sentineliq.interfaces.api.dependencies import (
+    get_ingest_logs_use_case,
+    get_log_repository,
+    verify_api_key,
+)
 from sentineliq.interfaces.api.schemas.log_schemas import (
     LogEntryOut,
     LogIngestRequest,
     LogIngestResponse,
 )
 
-router = APIRouter(prefix="/logs", tags=["logs"])
+router = APIRouter(
+    prefix="/logs",
+    tags=["logs"],
+    dependencies=[Depends(verify_api_key)],
+)
 
 
 @router.post("", response_model=LogIngestResponse, status_code=201)
