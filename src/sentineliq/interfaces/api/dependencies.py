@@ -20,6 +20,8 @@ from sentineliq.application.ports.api_key_repository import ApiKeyRepositoryPort
 from sentineliq.domain.entities.api_key import ApiKey
 from sentineliq.application.ports.log_repository import LogRepositoryPort
 from sentineliq.application.ports.object_storage import ObjectStoragePort
+from sentineliq.application.ports.report_repository import ReportRepositoryPort
+from sentineliq.application.use_cases.acknowledge_alert import AcknowledgeAlertUseCase
 from sentineliq.application.use_cases.analyze_logs import AnalyzeLogsUseCase
 from sentineliq.application.use_cases.generate_threat_report import (
     GenerateThreatReportUseCase,
@@ -37,6 +39,9 @@ from sentineliq.infrastructure.persistence.repositories.postgres_api_key_reposit
 )
 from sentineliq.infrastructure.persistence.repositories.postgres_log_repository import (
     PostgresLogRepository,
+)
+from sentineliq.infrastructure.persistence.repositories.postgres_report_repository import (
+    PostgresReportRepository,
 )
 
 
@@ -64,6 +69,10 @@ def get_alert_repository(session: AsyncSession = Depends(get_db_session)) -> Ale
 
 def get_api_key_repository(session: AsyncSession = Depends(get_db_session)) -> ApiKeyRepositoryPort:
     return PostgresApiKeyRepository(session)
+
+
+def get_report_repository(session: AsyncSession = Depends(get_db_session)) -> ReportRepositoryPort:
+    return PostgresReportRepository(session)
 
 
 async def verify_api_key(
@@ -118,13 +127,23 @@ def get_analyze_logs_use_case(
     )
 
 
+def get_acknowledge_alert_use_case(
+    alert_repository: AlertRepositoryPort = Depends(get_alert_repository),
+) -> AcknowledgeAlertUseCase:
+    return AcknowledgeAlertUseCase(alert_repository=alert_repository)
+
+
 def get_generate_report_use_case(
     log_repository: LogRepositoryPort = Depends(get_log_repository),
     alert_repository: AlertRepositoryPort = Depends(get_alert_repository),
+    report_repository: ReportRepositoryPort = Depends(get_report_repository),
     ai_analysis: AIAnalysisPort = Depends(get_ai_analysis),
+    object_storage: ObjectStoragePort = Depends(get_object_storage),
 ) -> GenerateThreatReportUseCase:
     return GenerateThreatReportUseCase(
         log_repository=log_repository,
         alert_repository=alert_repository,
+        report_repository=report_repository,
         ai_analysis=ai_analysis,
+        object_storage=object_storage,
     )

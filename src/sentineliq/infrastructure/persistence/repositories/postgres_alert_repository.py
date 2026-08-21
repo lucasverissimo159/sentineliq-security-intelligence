@@ -36,6 +36,12 @@ class PostgresAlertRepository(AlertRepositoryPort):
         result = await self._session.execute(stmt)
         return [_to_entity(model) for model in result.scalars().all()]
 
+    async def update(self, alert: ThreatAlert) -> None:
+        model = await self._session.get(ThreatAlertModel, alert.id)
+        if model:
+            model.acknowledged = alert.acknowledged
+            await self._session.flush()
+
 
 def _to_model(alert: ThreatAlert) -> ThreatAlertModel:
     return ThreatAlertModel(
