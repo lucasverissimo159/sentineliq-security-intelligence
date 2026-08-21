@@ -1,14 +1,19 @@
 """Endpoints for triggering analysis and browsing threat alerts."""
 from __future__ import annotations
 
-from fastapi import APIRouter, Depends, Query
+from uuid import UUID
 
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+
+from sentineliq.application.use_cases.acknowledge_alert import AcknowledgeAlertUseCase
 from sentineliq.application.use_cases.analyze_logs import AnalyzeLogsUseCase
 from sentineliq.domain.entities.threat_alert import ThreatAlert
+from sentineliq.domain.exceptions import ThreatAlertNotFoundError
 from sentineliq.infrastructure.persistence.repositories.postgres_alert_repository import (
     PostgresAlertRepository,
 )
 from sentineliq.interfaces.api.dependencies import (
+    get_acknowledge_alert_use_case,
     get_alert_repository,
     get_analyze_logs_use_case,
     verify_api_key,
@@ -42,6 +47,17 @@ async def list_unacknowledged_alerts(
 ) -> list[ThreatAlertOut]:
     alerts = await repository.list_unacknowledged(limit=limit)
     return [_to_out(a) for a in alerts]
+
+
+@router.post("/{alert_id}/acknowledge", status_code=status.HTTP_204_NO_CONTENT)
+async def acknowledge_alert(
+    alert_id: UUID,
+    use_case: AcknowledgeAlertUseCase = Depends(get_acknowledge_alert_use_case),
+):
+    try:
+        await use_case.execute(alert_id)
+    except ThreatAlertNotFoundError as e:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=str(e))
 
 
 def _to_out(alert: ThreatAlert) -> ThreatAlertOut:

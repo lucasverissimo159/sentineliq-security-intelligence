@@ -41,7 +41,10 @@ async def run_analysis_loop() -> None:
             # To be safer and strictly follow the generator protocol, we can just instantiate
             # the repositories using a direct session if we bypass get_db_session, or we can use it properly.
 
-            # We will use an async generator manual invocation:
+            # To handle the session properly outside of FastAPI's request lifecycle,
+            # we iterate through the generator to yield the session, run the logic,
+            # and then advance the generator again so it hits its `commit()` block.
+            # Using `.aclose()` would trigger `GeneratorExit` and roll back.
             session_generator = get_db_session()
             session = await anext(session_generator)
 
@@ -57,12 +60,23 @@ async def run_analysis_loop() -> None:
                 )
 
                 alerts_generated = await use_case.execute()
+
+                # Advance the generator so it commits the transaction.
+                try:
+                    await anext(session_generator)
+                except StopAsyncIteration:
+                    pass
+
                 logger.info(f"Background analysis run completed. Detected {len(alerts_generated)} alerts.")
             except Exception as inner_e:
+                # Close the generator with an exception so it triggers a rollback
+                try:
+                    await session_generator.athrow(inner_e)
+                except Exception:
+                    pass
+
                 # If an error happens inside the execute or setup, log it
                 logger.exception(f"Error during background analysis run: {inner_e}")
-            finally:
-                await session_generator.aclose()
 
         except asyncio.CancelledError:
             logger.info("Background analysis task cancelled. Shutting down gracefully.")

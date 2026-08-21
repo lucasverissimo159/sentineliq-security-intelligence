@@ -31,3 +31,11 @@ class ThreatAlertNotFoundError(DomainError):
 
 class InvalidLogBatchError(DomainError):
     """Raised when a batch of logs submitted for ingestion is invalid (e.g. empty)."""
+
+
+class AnalysisReportNotFoundError(DomainError):
+    """Raised when a requested analysis report does not exist."""
+
+    def __init__(self, report_id: object) -> None:
+        super().__init__(f"Analysis report not found: {report_id}")
+        self.report_id = report_id

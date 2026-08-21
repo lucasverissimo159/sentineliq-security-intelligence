@@ -17,6 +17,8 @@ from sentineliq.application.ports.alert_repository import AlertRepositoryPort
 from sentineliq.application.ports.api_key_repository import ApiKeyRepositoryPort
 from sentineliq.application.ports.log_repository import LogRepositoryPort
 from sentineliq.application.ports.object_storage import ObjectStoragePort
+from sentineliq.application.ports.report_repository import ReportRepositoryPort
+from sentineliq.domain.entities.analysis_report import AnalysisReport
 from sentineliq.domain.entities.api_key import ApiKey
 from sentineliq.domain.entities.log_entry import LogEntry
 from sentineliq.domain.entities.threat_alert import ThreatAlert
@@ -50,6 +52,12 @@ class FakeAlertRepository(AlertRepositoryPort):
     async def list_unacknowledged(self, limit: int = 100) -> list[ThreatAlert]:
         return [a for a in self.saved if not a.acknowledged][:limit]
 
+    async def update(self, alert: ThreatAlert) -> None:
+        for i, a in enumerate(self.saved):
+            if a.id == alert.id:
+                self.saved[i] = alert
+                break
+
 
 class FakeObjectStorage(ObjectStoragePort):
     def __init__(self) -> None:
@@ -75,6 +83,17 @@ class FakeApiKeyRepository(ApiKeyRepositoryPort):
         if existing:
             self.saved.remove(existing)
         self.saved.append(api_key)
+
+
+class FakeReportRepository(ReportRepositoryPort):
+    def __init__(self) -> None:
+        self.saved: list[AnalysisReport] = []
+
+    async def save(self, report: AnalysisReport) -> None:
+        self.saved.append(report)
+
+    async def find_by_id(self, report_id: UUID) -> AnalysisReport | None:
+        return next((r for r in self.saved if r.id == report_id), None)
 
 
 class FakeAIAnalysis(AIAnalysisPort):
@@ -114,6 +133,11 @@ def fake_ai_analysis() -> FakeAIAnalysis:
 @pytest.fixture
 def fake_api_key_repository() -> FakeApiKeyRepository:
     return FakeApiKeyRepository()
+
+
+@pytest.fixture
+def fake_report_repository() -> FakeReportRepository:
+    return FakeReportRepository()
 
 
 @pytest.fixture

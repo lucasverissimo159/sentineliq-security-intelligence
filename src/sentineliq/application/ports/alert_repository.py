@@ -21,3 +21,7 @@ class AlertRepositoryPort(ABC):
     @abstractmethod
     async def list_unacknowledged(self, limit: int = 100) -> list[ThreatAlert]:
         """List alerts that have not yet been acknowledged by an operator."""
+
+    @abstractmethod
+    async def update(self, alert: ThreatAlert) -> None:
+        """Update an existing alert."""
