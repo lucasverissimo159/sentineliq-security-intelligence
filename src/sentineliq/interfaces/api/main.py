@@ -8,9 +8,15 @@ from __future__ import annotations
 import asyncio
 import logging
 from contextlib import asynccontextmanager
+from uuid import uuid4
 
-from fastapi import FastAPI
+import structlog
+from fastapi import FastAPI, Request, Response
+from structlog.contextvars import bind_contextvars, clear_contextvars
 
+from prometheus_fastapi_instrumentator import Instrumentator
+
+from sentineliq.infrastructure.config.logging import setup_logging
 from sentineliq.infrastructure.config.settings import get_settings
 from sentineliq.infrastructure.persistence.database import get_engine
 from sentineliq.interfaces.api.background_tasks import run_analysis_loop
@@ -20,7 +26,7 @@ from sentineliq.interfaces.api.routers import alerts, logs, reports
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     settings = get_settings()
-    logging.basicConfig(level=settings.log_level)
+    setup_logging(settings.log_level)
 
     # Start the background analysis loop
     analysis_task = asyncio.create_task(run_analysis_loop())
@@ -56,9 +62,28 @@ def create_app() -> FastAPI:
     app.include_router(alerts.router)
     app.include_router(reports.router)
 
+    @app.middleware("http")
+    async def structlog_request_middleware(request: Request, call_next) -> Response:
+        clear_contextvars()
+        request_id = str(uuid4())
+        bind_contextvars(
+            request_id=request_id,
+            method=request.method,
+            path=request.url.path,
+            client=request.client.host if request.client else None,
+        )
+
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
+
     @app.get("/health", tags=["health"])
     async def health_check() -> dict[str, str]:
         return {"status": "ok", "app": settings.app_name, "env": settings.app_env}
+
+    # Setup basic Prometheus instrumentation (records request latency, counts, etc.)
+    # and expose the /metrics endpoint
+    Instrumentator().instrument(app).expose(app)
 
     return app
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 
 from anthropic import AsyncAnthropic
+from prometheus_client import Counter
 
 from sentineliq.application.ports.ai_analysis import AIAnalysisPort
 from sentineliq.domain.entities.log_entry import LogEntry
@@ -29,6 +30,18 @@ already raised, write a short plain-English summary (3-6 sentences): what \
 happened, what stands out, and whether anything needs attention. No markdown, \
 no bullet points — plain prose.
 """
+
+claude_api_calls_total = Counter(
+    "claude_api_calls_total",
+    "Total number of calls made to the Claude API",
+    ["operation"],
+)
+
+claude_api_tokens_used = Counter(
+    "claude_api_tokens_used",
+    "Total number of tokens consumed by Claude API calls",
+    ["operation", "token_type"],  # e.g., input, output
+)
 
 
 class ClaudeAnalysisAdapter(AIAnalysisPort):
@@ -60,6 +73,10 @@ class ClaudeAnalysisAdapter(AIAnalysisPort):
             system=_ANOMALY_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": numbered_logs}],
         )
+
+        claude_api_calls_total.labels(operation="detect_anomalies").inc()
+        claude_api_tokens_used.labels(operation="detect_anomalies", token_type="input").inc(response.usage.input_tokens)
+        claude_api_tokens_used.labels(operation="detect_anomalies", token_type="output").inc(response.usage.output_tokens)
 
         findings = _parse_json_array(_extract_text(response))
         alerts: list[ThreatAlert] = []
@@ -97,6 +114,11 @@ class ClaudeAnalysisAdapter(AIAnalysisPort):
             system=_SUMMARY_SYSTEM_PROMPT,
             messages=[{"role": "user", "content": user_content}],
         )
+
+        claude_api_calls_total.labels(operation="summarize").inc()
+        claude_api_tokens_used.labels(operation="summarize", token_type="input").inc(response.usage.input_tokens)
+        claude_api_tokens_used.labels(operation="summarize", token_type="output").inc(response.usage.output_tokens)
+
         return _extract_text(response)
 
 
