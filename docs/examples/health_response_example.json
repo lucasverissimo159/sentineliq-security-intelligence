@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "app": "SentinelIQ",
+  "env": "development",
+  "services": {
+    "database": {"provider": "PostgreSQL", "status": "configured"},
+    "object_storage": {"provider": "AWS S3", "status": "configured", "bucket": "sentineliq-raw-logs"},
+    "ai_analysis": {"provider": "Anthropic Claude", "status": "configured", "model": "claude-sonnet-5"}
+  }
+}

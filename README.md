@@ -28,6 +28,8 @@ matter.
 
 ## Architecture: hexagonal (ports & adapters)
 
+![Cloud architecture diagram](docs/ARCHITECTURE_CLOUD.svg)
+
 This project deliberately avoids MVC. It's structured as four
 concentric layers, dependencies pointing inward only:
 

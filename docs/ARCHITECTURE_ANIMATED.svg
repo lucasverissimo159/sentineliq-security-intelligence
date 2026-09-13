@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1400" height="820" viewBox="0 0 1400 820">
+  <defs>
+    <style>
+      :root { --line: #8b5cf6; --blue: #38bdf8; --green: #22c55e; --orange: #fb923c; --red: #e11d48; --text: #eaf2ff; --muted: #bdc7e2; }
+      .title { font: 700 34px Arial, sans-serif; fill: var(--text); }
+      .subtitle { font: 500 13px Arial, sans-serif; fill: var(--muted); }
+      .box-title { font: 700 15px Arial, sans-serif; fill: var(--text); }
+      .label { font: 600 12px Arial, sans-serif; fill: var(--text); }
+      .small { font: 400 11px Arial, sans-serif; fill: var(--muted); }
+      .grid { fill: none; stroke: #39588b; stroke-width: 1; stroke-dasharray: 4 4; }
+      .card { fill: rgba(45,55,92,0.72); stroke: var(--line); stroke-width: 1.5; }
+      .card2 { fill: rgba(80,80,120,0.72); stroke: var(--blue); stroke-width: 1.5; }
+      .path { fill: none; stroke: var(--blue); stroke-width: 2; stroke-dasharray: 4 4; marker-end: url(#arrow); animation: dash 900ms linear infinite; }
+      .pulse { animation: pulse 1500ms ease-in-out infinite; }
+      .float { animation: drift 2.4s ease-in-out infinite; }
+      @keyframes dash { to { stroke-dashoffset: -14; } }
+      @keyframes pulse { 50% { opacity: 0.65; } }
+      @keyframes drift { 50% { transform: translateY(-3px); } }
+    </style>
+    <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto">
+      <polygon points="0,0 8,4 0,8" fill="#8b5cf6" />
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2.2" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1400" height="820" fill="#0b0f1d" />
+
+  <!-- background grid -->
+  <g opacity="0.28">
+    <path class="grid" d="M70 80H1340" />
+    <path class="grid" d="M70 160H1340" />
+    <path class="grid" d="M70 240H1340" />
+    <path class="grid" d="M70 320H1340" />
+    <path class="grid" d="M70 400H1340" />
+    <path class="grid" d="M70 480H1340" />
+    <path class="grid" d="M70 560H1340" />
+    <path class="grid" d="M70 640H1340" />
+
+    <path class="grid" d="M100 60V760" />
+    <path class="grid" d="M260 60V760" />
+    <path class="grid" d="M420 60V760" />
+    <path class="grid" d="M580 60V760" />
+    <path class="grid" d="M740 60V760" />
+    <path class="grid" d="M900 60V760" />
+    <path class="grid" d="M1060 60V760" />
+    <path class="grid" d="M1220 60V760" />
+  </g>
+
+  <text x="60" y="58" class="title">SENTINELIQ</text>
+  <text x="60" y="88" class="subtitle">AI SECURITY LOG ANALYSIS PLATFORM</text>
+
+  <!-- left: users -->
+  <rect x="60" y="130" width="170" height="170" rx="15" class="card" />
+  <text x="85" y="160" class="box-title">Clients</text>
+  <circle cx="130" cy="210" r="24" fill="#312e81" stroke="#a78bfa" />
+  <text x="121" y="213" class="label">API</text>
+  <text x="105" y="250" class="small">Security Analyst</text>
+  <text x="105" y="272" class="small">or Integrator</text>
+
+  <!-- middle: API -->
+  <rect x="270" y="130" width="260" height="240" rx="15" class="card2" />
+  <text x="292" y="158" class="box-title">API Layer</text>
+  <rect x="292" y="180" width="220" height="40" rx="8" fill="#1e40af" stroke="#60a5fa" />
+  <text x="310" y="207" class="label">FastAPI Routers</text>
+  <text x="310" y="232" class="small">/logs · /alerts · /reports</text>
+
+  <rect x="292" y="250" width="220" height="52" rx="8" fill="#164e63" stroke="#2dd4bf" />
+  <text x="310" y="274" class="label">Health + Root + UI</text>
+  <text x="310" y="296" class="small">/health · / · /ui</text>
+
+  <!-- App use cases -->
+  <rect x="570" y="130" width="260" height="260" rx="15" class="card" />
+  <text x="592" y="158" class="box-title">Application Layer</text>
+  <rect x="592" y="180" width="216" height="40" rx="8" fill="#0ea5e9" stroke="#67e8f9" />
+  <text x="610" y="207" class="label">IngestLogs</text>
+  <rect x="592" y="230" width="216" height="40" rx="8" fill="#22c55e" stroke="#86efac" />
+  <text x="610" y="257" class="label">AnalyzeLogs</text>
+  <rect x="592" y="280" width="216" height="40" rx="8" fill="#f97316" stroke="#fdba74" />
+  <text x="610" y="307" class="label">GenerateReport</text>
+
+  <!-- Domain -->
+  <rect x="870" y="130" width="180" height="260" rx="15" class="card" />
+  <text x="890" y="160" class="box-title">Domain</text>
+  <text x="890" y="190" class="label">Entities</text>
+  <text x="890" y="213" class="small">LogEntry</text>
+  <text x="890" y="236" class="small">ThreatAlert</text>
+  <text x="890" y="259" class="small">AnalysisReport</text>
+  <text x="890" y="288" class="label">Value Objects</text>
+  <text x="890" y="312" class="small">Severity</text>
+  <text x="890" y="340" class="label">Exceptions</text>
+
+  <!-- Infrastructure -->
+  <rect x="1080" y="130" width="210" height="260" rx="15" class="card2" />
+  <text x="1102" y="160" class="box-title">Infrastructure</text>
+  <rect x="1102" y="180" width="160" height="40" rx="8" fill="#312e81" stroke="#a78bfa" />
+  <text x="1122" y="206" class="label">PostgreSQL</text>
+  <rect x="1102" y="230" width="160" height="40" rx="8" fill="#14532d" stroke="#86efac" />
+  <text x="1122" y="256" class="label">AWS S3</text>
+  <rect x="1102" y="280" width="160" height="40" rx="8" fill="#7c2d12" stroke="#fdba74" />
+  <text x="1122" y="306" class="label">Anthropic Claude</text>
+
+  <!-- bottom horizontal flow -->
+  <rect x="60" y="430" width="1230" height="180" rx="12" class="card2" />
+  <text x="80" y="460" class="box-title">Interaction Flow</text>
+  <line x1="80" y1="492" x2="250" y2="492" class="path" />
+  <text x="86" y="525" class="small">logs in</text>
+  <text x="290" y="525" class="small">FastAPI routes</text>
+  <text x="590" y="525" class="small">use cases</text>
+  <text x="900" y="525" class="small">domain objects</text>
+  <text x="1110" y="525" class="small">external services</text>
+  <line x1="250" y1="492" x2="510" y2="492" class="path" />
+  <line x1="510" y1="492" x2="820" y2="492" class="path" />
+  <line x1="820" y1="492" x2="990" y2="492" class="path" />
+  <line x1="990" y1="492" x2="1210" y2="492" class="path" />
+
+  <!-- animated service indicators -->
+  <g class="float">
+    <circle cx="122" cy="620" r="5" fill="#22c55e" class="pulse" />
+    <circle cx="280" cy="620" r="5" fill="#60a5fa" class="pulse" />
+    <circle cx="590" cy="620" r="5" fill="#fbbf24" class="pulse" />
+    <circle cx="900" cy="620" r="5" fill="#c084fc" class="pulse" />
+    <circle cx="1180" cy="620" r="5" fill="#22c55e" class="pulse" />
+  </g>
+
+  <!-- legend -->
+  <text x="80" y="780" class="small">Hexagonal architecture · Ports and adapters · Security intelligence ingestion and reporting</text>
+</svg>

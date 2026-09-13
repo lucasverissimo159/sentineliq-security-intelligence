@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    ports:
+      - "8000:8000"
+    environment:
+      APP_ENV: production
+      DATABASE_URL: postgresql+asyncpg://sentineliq:sentineliq@postgres:5432/sentineliq
+      AWS_REGION: us-east-1
+      AWS_S3_BUCKET: sentineliq-raw-logs
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
+      ANTHROPIC_MODEL: claude-sonnet-5
+      SENTINELIQ_JWT_SECRET: ${SENTINELIQ_JWT_SECRET}
+      SENTINELIQ_LOG_LEVEL: INFO
+    depends_on:
+      - postgres
+
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: sentineliq
+      POSTGRES_USER: sentineliq
+      POSTGRES_PASSWORD: sentineliq
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:

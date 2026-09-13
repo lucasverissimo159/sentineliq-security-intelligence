@@ -1,5 +1,24 @@
 # Architecture notes
 
+## Architecture diagram
+
+```mermaid
+flowchart LR
+    U[Security analyst or API client] --> A[JWT auth / /auth/token]
+    U --> R[FastAPI routers: /logs, /alerts, /reports]
+    R --> H[Health / Root / UI endpoints]
+    R --> ACK[POST /alerts/{id}/acknowledge]
+    R --> UC[Use Cases]
+    UC --> P[Ports: LogRepositoryPort, AlertRepositoryPort, ObjectStoragePort, AIAnalysisPort]
+    P --> DB[(PostgreSQL)]
+    P --> S3[(AWS S3)]
+    P --> AI[Anthropic Claude]
+    H --> DI[Dependency injection]
+    UC --> D[Domain entities and value objects]
+    R --> O[Tracing, request IDs, metrics]
+    ACK --> D
+```
+
 ## Why hexagonal instead of MVC
 
 MVC couples the "shape of the data" to the "shape of the UI/API" —
@@ -29,6 +48,26 @@ All binding of ports to adapters lives in one file:
 mechanism resolves the chain per-request. To add a new adapter (e.g. a
 different AI provider), implement the relevant port and change exactly
 one function in that file — no other file needs to know.
+
+## Current functionality improvement opportunities
+
+The repository already contains the core wiring for a working
+hexagonal API, but the roadmap clearly identifies where the product can
+keep evolving without disturbing the architectural seams:
+
+- scheduled analysis to replace the manual `POST /alerts/analyze` trigger;
+- a first real Alembic migration and persistent schema model history;
+- alert acknowledgement and lifecycle workflows (`acknowledge`,
+  dismissal/escalation states);
+- report archival and a dedicated `ReportRepositoryPort` for persisted
+  incident reports;
+- deployment-grade observability with structured JSON logs and
+  Prometheus-style metrics;
+- production-ready ingestion adapters beyond the current JSON batch
+  endpoint.
+
+These are the next natural improvements because they extend existing
+ports/use cases instead of forcing a rewrite of the domain model.
 
 ## Why entities are immutable dataclasses
 

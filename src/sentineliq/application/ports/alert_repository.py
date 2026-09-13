@@ -19,5 +19,9 @@ class AlertRepositoryPort(ABC):
         """Fetch a single alert by id, or None if it doesn't exist."""
 
     @abstractmethod
+    async def acknowledge(self, alert_id: UUID) -> ThreatAlert | None:
+        """Mark a single alert as acknowledged and return the updated entity."""
+
+    @abstractmethod
     async def list_unacknowledged(self, limit: int = 100) -> list[ThreatAlert]:
         """List alerts that have not yet been acknowledged by an operator."""

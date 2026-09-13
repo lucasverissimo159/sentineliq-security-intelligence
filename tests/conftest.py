@@ -47,6 +47,14 @@ class FakeAlertRepository(AlertRepositoryPort):
     async def find_by_id(self, alert_id: UUID) -> ThreatAlert | None:
         return next((a for a in self.saved if a.id == alert_id), None)
 
+    async def acknowledge(self, alert_id: UUID) -> ThreatAlert | None:
+        for index, alert in enumerate(self.saved):
+            if alert.id == alert_id:
+                acknowledged = alert.acknowledge()
+                self.saved[index] = acknowledged
+                return acknowledged
+        return None
+
     async def list_unacknowledged(self, limit: int = 100) -> list[ThreatAlert]:
         return [a for a in self.saved if not a.acknowledged][:limit]
 

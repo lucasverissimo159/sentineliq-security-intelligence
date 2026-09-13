@@ -26,6 +26,15 @@ class PostgresAlertRepository(AlertRepositoryPort):
         model = await self._session.get(ThreatAlertModel, alert_id)
         return _to_entity(model) if model else None
 
+    async def acknowledge(self, alert_id: UUID) -> ThreatAlert | None:
+        model = await self._session.get(ThreatAlertModel, alert_id)
+        if model is None:
+            return None
+
+        model.acknowledged = True
+        await self._session.flush()
+        return _to_entity(model)
+
     async def list_unacknowledged(self, limit: int = 100) -> list[ThreatAlert]:
         stmt = (
             select(ThreatAlertModel)
